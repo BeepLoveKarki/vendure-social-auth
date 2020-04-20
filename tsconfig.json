@@ -4,9 +4,13 @@
       "module": "commonjs",
       "declaration": true,
       "outDir": "./dist",
+      "removeComments": true,
+      "noLib": false,
+      "skipLibCheck": true,
       "strict": true,
-      "experimentalDecorators": true
+      "experimentalDecorators": true,
+      "sourceMap": true
     },
-    "include": ["src"],
+    "files": ["./index.ts"],
     "exclude": ["node_modules", "**/__tests__/*"]
   }
