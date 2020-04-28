@@ -1,4 +1,4 @@
-import { VendurePlugin, Type, PluginCommonModule } from '@vendure/core';
+import { VendurePlugin, Type, PluginCommonModule, RuntimeVendureConfig } from '@vendure/core';
 import { SocialAuthOptions } from "./types";
 import { PLUGIN_OPTIONS } from './constants';
 import { schemaExtension, SocialAuthResolver } from './resolvers/social-auth.resolver';
@@ -14,7 +14,8 @@ import { schemaExtension, SocialAuthResolver } from './resolvers/social-auth.res
     shopApiExtensions: {
         schema: schemaExtension,
         resolvers: [SocialAuthResolver]
-    }
+    },
+    configuration: (config) => SocialAuthPlugin.configure(config)
 })
 export class SocialAuthPlugin {
     private static options: SocialAuthOptions;
@@ -22,5 +23,10 @@ export class SocialAuthPlugin {
     static init(options: SocialAuthOptions): Type<SocialAuthPlugin> {
         SocialAuthPlugin.options = options;
         return this;
+    }
+
+    static configure(config: RuntimeVendureConfig): RuntimeVendureConfig {
+        // Configuration
+        return config;
     }
 }
