@@ -41,8 +41,6 @@ export class GoogleVerificationService {
 			lastName: authenticatedPayload.family_name || '',
 		};
 
-		// TODO: Validate 'nonce' property
-
 		return profileData;
 	}
 }

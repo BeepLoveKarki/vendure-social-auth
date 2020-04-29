@@ -9,7 +9,7 @@ import {
 	Order,
 	Session,
 } from '@vendure/core';
-import crypto from 'crypto';
+import { randomBytes } from 'crypto';
 import ms from 'ms';
 
 @Injectable()
@@ -56,7 +56,7 @@ export class SessionUtilsService {
 
 	private generateSessionToken(): Promise<string> {
 		return new Promise((resolve, reject) => {
-			crypto.randomBytes(32, (err, buf) => {
+			randomBytes(32, (err, buf) => {
 				if (err) {
 					reject(err);
 				}

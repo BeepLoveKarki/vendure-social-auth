@@ -4,13 +4,18 @@ import {
 	Type,
 	VendurePlugin,
 } from '@vendure/core';
-import { SOCIAL_AUTH_PLUGIN_OPTIONS, DEFAULT_AUTH_PLUGIN_OPTIONS } from './constants';
+import {
+	DEFAULT_AUTH_PLUGIN_OPTIONS,
+	SOCIAL_AUTH_PLUGIN_OPTIONS,
+} from './constants';
 import { apiExtensions } from './graphql/schema-extensions';
 import { SocialAuthResolver } from './graphql/social-auth.resolver';
-import { ExternalAuthService } from './services/external-auth.service';
-import { FacebookVerificationService } from './services/facebook-verification.service';
-import { GoogleVerificationService } from './services/google-verification.service';
-import { SessionUtilsService } from './services/session-utils.service';
+import {
+	ExternalAuthService,
+	FacebookVerificationService,
+	GoogleVerificationService,
+	SessionUtilsService,
+} from './services';
 import { SocialAuthPluginOptions } from './types';
 
 @VendurePlugin({
@@ -35,7 +40,10 @@ export class SocialAuthPlugin {
 	private static options: SocialAuthPluginOptions;
 
 	static init(options: SocialAuthPluginOptions): Type<SocialAuthPlugin> {
-		SocialAuthPlugin.options = {...DEFAULT_AUTH_PLUGIN_OPTIONS, ...options };
+		SocialAuthPlugin.options = {
+			...DEFAULT_AUTH_PLUGIN_OPTIONS,
+			...options,
+		};
 		return this;
 	}
 

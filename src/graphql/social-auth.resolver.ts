@@ -16,14 +16,14 @@ import {
 	CurrentUserChannel,
 	setAuthToken,
 } from '../internal-types';
-import { ExternalAuthService } from '../services/external-auth.service';
+import { ExternalAuthService } from '../services';
 
 @Resolver()
 export class SocialAuthResolver {
 	constructor(
 		private externalAuthService: ExternalAuthService,
 		private configService: ConfigService
-	) {}
+	) { }
 
 	@Mutation()
 	@Allow(Permission.Public)
@@ -64,6 +64,7 @@ export class SocialAuthResolver {
 		return {
 			id: user.id as string,
 			identifier: user.identifier,
+			// TODO: This returns an error the first time user is registered (roles.channels not interable)
 			channels: getUserChannelsPermissions(user) as CurrentUserChannel[],
 		};
 	}

@@ -8,11 +8,12 @@
       "noLib": false,
       "skipLibCheck": true,
       "strict": true,
+      "esModuleInterop": true,
+      "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
-      "allowSyntheticDefaultImports": true,
       "allowJs": true,
       "sourceMap": true
     },
-    "include": ["src/**/*", "index.ts"],
+    "files": ["./index.ts"],
     "exclude": ["node_modules", "**/__tests__/*"]
   }
