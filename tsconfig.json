@@ -9,8 +9,9 @@
       "skipLibCheck": true,
       "strict": true,
       "experimentalDecorators": true,
+      "allowJs": true,
       "sourceMap": true
     },
-    "files": ["./index.ts"],
+    "include": ["src/**/*", "index.ts"],
     "exclude": ["node_modules", "**/__tests__/*"]
   }
