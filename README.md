@@ -1,16 +1,17 @@
 # Vendure Social Auth
 
-A community plugin for [Vendure E-Commerce](https://www.vendure.io/) that allows authentication with the Vendure server via client-side tokens, issued from Google or Facebook.
+A community plugin for [Vendure E-Commerce](https://www.vendure.io/) that allows authentication with your Vendure server via client-side tokens, issued from Google or Facebook.
 
 ## Table of Contents
 
-* Prerequisites
-* Installation
-* Configuration
-* GraphQL Extensions
-* Entities
-* Admin UI Extensions
-* Error handling
+* [Prerequisites](#prerequisites)
+* [Installation](#installation)
+* [Configuration](#configuration)
+* [GraphQL Extensions](#graphql-extensions)
+* [Entities](#entities)
+* [Admin UI Extensions](#admin-ui-extensions)
+* [Error Handling](#error-handling)
+* [License](#license)
 
 ## Prerequisites
 
