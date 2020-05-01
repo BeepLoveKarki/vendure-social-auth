@@ -2,6 +2,8 @@
 
 A community plugin for [Vendure E-Commerce](https://www.vendure.io/) that allows authentication with your Vendure server via client-side tokens, issued from Google or Facebook.
 
+[![Build Status](https://travis-ci.com/FlushBG/vendure-social-auth.svg?branch=master)](https://travis-ci.com/FlushBG/vendure-social-auth)
+
 ## Table of Contents
 
 * [Prerequisites](#prerequisites)
