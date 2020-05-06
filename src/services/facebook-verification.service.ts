@@ -6,6 +6,12 @@ import {
 	SOCIAL_AUTH_PLUGIN_OPTIONS,
 } from '../constants';
 import { ExternalProfileData, SocialAuthPluginOptions } from '../types';
+import {
+	hasUnknownAppId,
+	isExpired,
+	hasEmailScope,
+} from '../helpers/token-validation';
+import { UnauthorizedError } from '@vendure/core';
 
 interface FBDebugTokenResponse {
 	app_id: string;
@@ -27,37 +33,35 @@ export class FacebookVerificationService {
 		@Inject(SOCIAL_AUTH_PLUGIN_OPTIONS)
 		private options: SocialAuthPluginOptions
 	) {
-		// TODO: Get app token dynamically per request for extra security?
 		this.appToken = `${options.facebook.appId}|${options.facebook.appSecret}`;
 		this.baseUrl = `https://graph.facebook.com/${options.facebook.apiVersion}`;
 	}
 
 	async verify(token: string): Promise<ExternalProfileData> {
-		// TODO: Implement an adequate try-catch
-		try {
-			const debugResponse = await axios.get<FBDebugTokenResponse>(
-				this.getDebugUrl(token, this.appToken)
-			);
-			const payload = debugResponse.data;
-
-			// TODO: Extra token validations (expiry date, returned app Id vs app Id from options, granted email scope and public_profile scope)
-			if (!payload.is_valid) {
-				// error
-			}
-			
-			const profileResponse = await axios.get(this.getProfileUrl(token));
-
-			const profileData: ExternalProfileData = {
-				id: profileResponse.data.id,
-				email: profileResponse.data.email,
-				firstName: profileResponse.data.first_name || '',
-				lastName: profileResponse.data.last_name || '',
-			};
-
-			return profileData;
-		} catch (err) {
-			return Promise.reject(err.response.data);
+		const debugResponse = await axios.get<FBDebugTokenResponse>(
+			this.getDebugUrl(token, this.appToken)
+		);
+		const payload = debugResponse.data;
+		if (
+			!payload ||
+			!payload.is_valid ||
+			hasUnknownAppId(this.options.facebook.appId, payload.app_id) ||
+			isExpired(payload.expires_at) ||
+			!hasEmailScope(payload.scopes)
+		) {
+			throw new UnauthorizedError();
 		}
+		
+		const profileResponse = await axios.get(this.getProfileUrl(token));
+
+		const profileData: ExternalProfileData = {
+			id: profileResponse.data.id,
+			email: profileResponse.data.email,
+			firstName: profileResponse.data.first_name || '',
+			lastName: profileResponse.data.last_name || '',
+		};
+
+		return profileData;
 	}
 
 	private getDebugUrl(inputToken: string, accessToken: string): string {

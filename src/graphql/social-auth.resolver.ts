@@ -27,13 +27,13 @@ export class SocialAuthResolver {
 
 	@Mutation()
 	@Allow(Permission.Public)
-	loginExternal(
+	async loginExternal(
 		@Args() args: ExternalLoginMutationArgs,
 		@Ctx() ctx: RequestContext,
 		@Context('req') req: Request,
 		@Context('res') res: Response
 	): Promise<LoginResult> {
-		return this.createExternalAuthSession(ctx, args, req, res);
+		return await this.createExternalAuthSession(ctx, args, req, res);
 	}
 
 	private async createExternalAuthSession(
@@ -64,7 +64,6 @@ export class SocialAuthResolver {
 		return {
 			id: user.id as string,
 			identifier: user.identifier,
-			// TODO: This returns an error the first time user is registered (roles.channels not interable)
 			channels: getUserChannelsPermissions(user) as CurrentUserChannel[],
 		};
 	}

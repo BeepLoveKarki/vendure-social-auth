@@ -2,6 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { OAuth2Client } from 'google-auth-library';
 import { SOCIAL_AUTH_PLUGIN_OPTIONS } from '../constants';
 import { ExternalProfileData, SocialAuthPluginOptions } from '../types';
+import { UnauthorizedError } from '@vendure/core';
+import { hasUnknownAppId, isExpired } from '../helpers/token-validation';
 
 @Injectable()
 export class GoogleVerificationService {
@@ -15,25 +17,23 @@ export class GoogleVerificationService {
 	}
 
 	async verify(token: string): Promise<ExternalProfileData> {
-		// TODO: Implement adequate error handling (custom plugin error?)
 		const ticket = await this.client.verifyIdToken({
 			idToken: token,
 			audience: this.options.google.clientId,
 		});
 
 		const payload = ticket.getPayload();
-		if (!payload) {
-			// error
+		if (
+			!payload ||
+			hasUnknownAppId(this.options.google.clientId, payload.aud) ||
+			isExpired(payload.exp) ||
+			!payload.email ||
+			!payload.email_verified
+		) {
+			throw new UnauthorizedError();
 		}
 
 		const authenticatedPayload = payload!;
-		if (
-			!authenticatedPayload.email ||
-			!authenticatedPayload.email_verified
-		) {
-			// error for email
-		}
-
 		const profileData: ExternalProfileData = {
 			id: authenticatedPayload.sub,
 			email: authenticatedPayload.email!,

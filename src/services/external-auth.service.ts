@@ -7,10 +7,12 @@ import {
 	RequestContext,
 	RoleService,
 	User,
+	UnauthorizedError,
+	InternalServerError,
 } from '@vendure/core';
 import { Connection } from 'typeorm';
 import { SOCIAL_AUTH_PLUGIN_OPTIONS } from '../constants';
-import { ExternalProfileData, SocialAuthPluginOptions } from '../types';
+import { ExternalProfileData, SocialAuthPluginOptions, StrategyNotSupportedError } from '../types';
 import { FacebookVerificationService } from './facebook-verification.service';
 import { GoogleVerificationService } from './google-verification.service';
 import { SessionUtilsService } from './session-utils.service';
@@ -30,15 +32,23 @@ export class ExternalAuthService {
 	async authenticate(ctx: RequestContext, strategy: string, token: string) {
 		// TODO: Implement event bus events
 		let profileData: ExternalProfileData;
-		switch (strategy) {
-			case this.options.google.strategyName:
-				profileData = await this.googleService.verify(token);
-				break;
-			case this.options.facebook.strategyName:
-				profileData = await this.facebookService.verify(token);
-				break;
-			default:
-				throw new Error('Authentication strategy is not supported!');
+		try {
+			switch (strategy) {
+				case this.options.google.strategyName:
+					profileData = await this.googleService.verify(token);
+					break;
+				case this.options.facebook.strategyName:
+					profileData = await this.facebookService.verify(token);
+					break;
+				default:
+					throw new StrategyNotSupportedError();
+			}
+		} catch (up) {
+			if (up instanceof StrategyNotSupportedError || up instanceof UnauthorizedError) {
+				throw up; //haha
+			}
+
+			throw new InternalServerError(up.message);
 		}
 
 		let user = await this.getUserByIdentifier(profileData.id);
@@ -85,7 +95,6 @@ export class ExternalAuthService {
 
 		const user = new User({
 			identifier: profileData.id,
-			// TODO: Some salted password hash / uuid, that makes sure it is inaccessible via login?
 			passwordHash: '',
 			verificationToken: null,
 			verified: true,
