@@ -104,9 +104,12 @@ export class ExternalAuthService {
 		user.roles = [customerRole];
 		customer.user = user;
 
-		const result = await this.connection.getRepository(User).save(user);
+		await this.connection.getRepository(User).save(user);
 		await this.connection.getRepository(Customer).save(customer);
 
-		return result;
+		return await this.connection.getRepository(User).findOneOrFail({
+			where: { identifier: profileData.id },
+			relations: ['roles', 'roles.channels'],
+		});
 	}
 }
