@@ -3,12 +3,16 @@ import { InjectConnection } from '@nestjs/typeorm';
 import {
 	AuthenticatedSession,
 	Customer,
+	EventBus,
+	InternalServerError,
 	normalizeEmailAddress,
 	RequestContext,
 	RoleService,
-	User,
 	UnauthorizedError,
-	InternalServerError,
+	User,
+	AttemptedLoginEvent,
+	LoginEvent,
+	AccountRegistrationEvent,
 } from '@vendure/core';
 import { Connection } from 'typeorm';
 import { SOCIAL_AUTH_PLUGIN_OPTIONS } from '../constants';
@@ -30,11 +34,12 @@ export class ExternalAuthService {
 		private sessionUtilsService: SessionUtilsService,
 		private roleService: RoleService,
 		private googleService: GoogleVerificationService,
-		private facebookService: FacebookVerificationService
+		private facebookService: FacebookVerificationService,
+		private eventBus: EventBus
 	) {}
 
 	async authenticate(ctx: RequestContext, strategy: string, token: string) {
-		// TODO: Implement event bus events
+		this.eventBus.publish(new AttemptedLoginEvent(ctx, token));
 		let profileData: ExternalProfileData;
 		try {
 			switch (strategy) {
@@ -61,6 +66,7 @@ export class ExternalAuthService {
 		let user = await this.getUserByIdentifier(profileData.id);
 		if (!user) {
 			user = await this.createExternalUser(profileData);
+			this.eventBus.publish(new AccountRegistrationEvent(ctx, user));
 		}
 
 		if (ctx.session && ctx.session.activeOrder) {
@@ -77,6 +83,7 @@ export class ExternalAuthService {
 			.getRepository(AuthenticatedSession)
 			.save(session);
 
+		this.eventBus.publish(new LoginEvent(ctx, user));
 		return newSession;
 	}
 
@@ -102,12 +109,12 @@ export class ExternalAuthService {
 			roles: [await this.roleService.getCustomerRole()],
 		});
 		await this.connection.getRepository(User).save(user);
-		
+
 		const customer = new Customer({
 			emailAddress: normalizeEmailAddress(profileData.email),
 			firstName: profileData.firstName,
 			lastName: profileData.lastName,
-			user: user
+			user: user,
 		});
 		await this.connection.getRepository(Customer).save(customer);
 
