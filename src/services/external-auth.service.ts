@@ -12,7 +12,11 @@ import {
 } from '@vendure/core';
 import { Connection } from 'typeorm';
 import { SOCIAL_AUTH_PLUGIN_OPTIONS } from '../constants';
-import { ExternalProfileData, SocialAuthPluginOptions, StrategyNotSupportedError } from '../types';
+import {
+	ExternalProfileData,
+	SocialAuthPluginOptions,
+	StrategyNotSupportedError,
+} from '../types';
 import { FacebookVerificationService } from './facebook-verification.service';
 import { GoogleVerificationService } from './google-verification.service';
 import { SessionUtilsService } from './session-utils.service';
@@ -44,7 +48,10 @@ export class ExternalAuthService {
 					throw new StrategyNotSupportedError();
 			}
 		} catch (up) {
-			if (up instanceof StrategyNotSupportedError || up instanceof UnauthorizedError) {
+			if (
+				up instanceof StrategyNotSupportedError ||
+				up instanceof UnauthorizedError
+			) {
 				throw up; //haha
 			}
 
@@ -87,24 +94,21 @@ export class ExternalAuthService {
 	private async createExternalUser(
 		profileData: ExternalProfileData
 	): Promise<User> {
-		const customer = new Customer({
-			emailAddress: normalizeEmailAddress(profileData.email),
-			firstName: profileData.firstName,
-			lastName: profileData.lastName,
-		});
-
 		const user = new User({
 			identifier: profileData.id,
 			passwordHash: '',
 			verificationToken: null,
 			verified: true,
+			roles: [await this.roleService.getCustomerRole()],
 		});
-
-		const customerRole = await this.roleService.getCustomerRole();
-		user.roles = [customerRole];
-		customer.user = user;
-
 		await this.connection.getRepository(User).save(user);
+		
+		const customer = new Customer({
+			emailAddress: normalizeEmailAddress(profileData.email),
+			firstName: profileData.firstName,
+			lastName: profileData.lastName,
+			user: user
+		});
 		await this.connection.getRepository(Customer).save(customer);
 
 		return await this.connection.getRepository(User).findOneOrFail({
